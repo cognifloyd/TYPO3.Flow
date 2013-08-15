@@ -505,7 +505,6 @@ class Scripts {
 		$packageManager = $bootstrap->getEarlyInstance('TYPO3\Flow\Package\PackageManagerInterface');
 		$resourceManager = $bootstrap->getObjectManager()->get('TYPO3\Flow\Resource\ResourceManager');
 		$resourceManager->initialize();
-		$resourceManager->publishPublicPackageResources($packageManager->getActivePackages());
 	}
 
 	/**

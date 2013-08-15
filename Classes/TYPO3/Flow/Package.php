@@ -34,6 +34,7 @@ class Package extends BasePackage {
 		$bootstrap->registerRequestHandler(new \TYPO3\Flow\Cli\SlaveRequestHandler($bootstrap));
 		$bootstrap->registerRequestHandler(new \TYPO3\Flow\Cli\CommandRequestHandler($bootstrap));
 		$bootstrap->registerRequestHandler(new \TYPO3\Flow\Http\RequestHandler($bootstrap));
+		$bootstrap->registerRequestHandler(new \TYPO3\Flow\Resource\StaticResourcesRequestHandler($bootstrap));
 
 		if ($bootstrap->getContext()->isTesting()) {
 			$bootstrap->getEarlyInstance('TYPO3\Flow\Core\ClassLoader')->setConsiderTestsNamespace(TRUE);

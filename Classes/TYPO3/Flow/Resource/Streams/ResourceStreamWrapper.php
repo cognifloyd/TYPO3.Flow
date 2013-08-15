@@ -12,13 +12,18 @@ namespace TYPO3\Flow\Resource\Streams;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Files;
 
 /**
  * A stream wrapper for package resources.
+ *
+ * TODO: handle / disable fwrite() ?
+ *
  */
-class ResourceStreamWrapper implements \TYPO3\Flow\Resource\Streams\StreamWrapperInterface {
+class ResourceStreamWrapper implements StreamWrapperInterface {
 
 	/**
+	 * @const string
 	 */
 	const SCHEME = 'resource';
 
@@ -66,7 +71,7 @@ class ResourceStreamWrapper implements \TYPO3\Flow\Resource\Streams\StreamWrappe
 	 * Any resources which were locked, or allocated, during opening and use of
 	 * the directory stream should be released.
 	 *
-	 * @return boolean always TRUE
+	 * @return boolean Always TRUE
 	 */
 	public function closeDirectory() {
 		closedir($this->handle);
@@ -425,13 +430,17 @@ class ResourceStreamWrapper implements \TYPO3\Flow\Resource\Streams\StreamWrappe
 	 *     this flag is not set, you are responsible for reporting errors using
 	 *     the trigger_error() function during stating of the path.
 	 *
+	 * Note: The stat() call is silenced through the shut-up operator because this method would issue a warning if the
+	 *       file does not exist - but file_exists() will call pathStat() in order to check exactly that. So without
+	 *       the "@" operator it wouldn't be possible to run file_exists() on a resource without issuing a warning and
+	 *       the resulting exception.
+	 *
 	 * @param string $path The file path or URL to stat. Note that in the case of a URL, it must be a :// delimited URL. Other URL forms are not supported.
 	 * @param integer $flags Holds additional flags set by the streams API.
 	 * @return array Should return as many elements as stat() does. Unknown or unavailable values should be set to a rational value (usually 0).
 	 */
 	public function pathStat($path, $flags) {
-		$resourcePath = $this->evaluateResourcePath($path);
-		return ($resourcePath !== FALSE) ? stat($resourcePath) : FALSE;
+		return @stat($this->evaluateResourcePath($path));
 	}
 
 	/**
@@ -443,24 +452,20 @@ class ResourceStreamWrapper implements \TYPO3\Flow\Resource\Streams\StreamWrappe
 	 * @return mixed The full path and filename or FALSE if the file doesn't exist
 	 * @throws \TYPO3\Flow\Resource\Exception
 	 * @throws \InvalidArgumentException
+	 * FIXME check if $checkForExistence is still needed
 	 */
 	protected function evaluateResourcePath($requestedPath, $checkForExistence = TRUE) {
 		if (substr($requestedPath, 0, strlen(self::SCHEME)) !== self::SCHEME) {
 			throw new \InvalidArgumentException('The ' . __CLASS__ . ' only supports the \'' . self::SCHEME . '\' scheme.', 1256052544);
 		}
-
 		$uriParts = parse_url($requestedPath);
 		if (!is_array($uriParts) || !isset($uriParts['host'])) {
 			return FALSE;
 		}
 
 		if (strlen($uriParts['host']) === 40) {
-			$resourcePath = $this->resourceManager->getPersistentResourcesStorageBaseUri() . $uriParts['host'];
-			if ($checkForExistence === FALSE || file_exists($resourcePath)) {
-				return $resourcePath;
-			} else {
-				return FALSE;
-			}
+			$resource = $this->resourceManager->getResourceBySha1($uriParts['host']);
+			return $this->resourceManager->getPrivateStorageUriByResource($resource);
 		}
 
 		if (!$this->packageManager->isPackageAvailable($uriParts['host'])) {
@@ -468,10 +473,10 @@ class ResourceStreamWrapper implements \TYPO3\Flow\Resource\Streams\StreamWrappe
 		}
 
 		$package = $this->packageManager->getPackage($uriParts['host']);
-		$resourcePath = \TYPO3\Flow\Utility\Files::concatenatePaths(array($package->getResourcesPath(), $uriParts['path']));
+		$resourceUri = Files::concatenatePaths(array($package->getResourcesPath(), $uriParts['path']));
 
-		if ($checkForExistence === FALSE || file_exists($resourcePath)) {
-			return $resourcePath;
+		if ($checkForExistence === FALSE || file_exists($resourceUri)) {
+			return $resourceUri;
 		}
 
 		return FALSE;

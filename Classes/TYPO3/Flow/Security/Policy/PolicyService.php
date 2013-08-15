@@ -320,7 +320,7 @@ class PolicyService implements \TYPO3\Flow\Aop\Pointcut\PointcutFilterInterface 
 
 		$role = $this->roleRepository->findByIdentifier($roleIdentifier);
 		if ($role === NULL) {
-			throw new \TYPO3\Flow\Security\Exception\NoSuchRoleException(sprintf('The role with identifier "%s" is unknown', $roleIdentifier), 1353085860);
+			throw new \TYPO3\Flow\Security\Exception\NoSuchRoleException(sprintf('The role with identifier "%s" is unknown. If that role DOES exist in a policy file, you might want to flush the caches in order to populate the definition into the database.', $roleIdentifier), 1353085860);
 		}
 
 		return $role;

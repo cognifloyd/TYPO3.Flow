@@ -131,7 +131,7 @@ class Request extends Message {
 		$query = $uri->getQuery();
 		$fragment = $uri->getFragment();
 		$overrideValues = array(
-			'REQUEST_URI' => $uri->getPath() . ($query !== '' ? '?' . $query : '') . ($fragment !== '' ? '#' . $fragment : ''),
+			'REQUEST_URI' => $uri->getPath() . (!empty($query) ? '?' . $query : '') . (!empty($fragment) ? '#' . $fragment : ''),
 			'REQUEST_METHOD' => $method,
 			'QUERY_STRING' => $query
 		);
@@ -541,7 +541,7 @@ class Request extends Message {
 			} else {
 				$newFieldPaths = $this->calculateFieldPaths($fieldInformation['error'], $firstLevelFieldName);
 				array_walk($newFieldPaths,
-					function(&$value, $key) {
+					function(&$value) {
 						$value = explode('/', $value);
 					}
 				);

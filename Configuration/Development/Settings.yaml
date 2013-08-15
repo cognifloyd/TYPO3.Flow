@@ -46,3 +46,9 @@ TYPO3:
         backendOptions:
           logFileURL: %FLOW_PATH_DATA%Logs/Query_Development.log
           severityThreshold: %LOG_DEBUG%
+
+#    resource:
+#      targets:
+#        localWebDirectoryStaticResourcesTarget:
+#          targetOptions:
+#            baseUri: '?TYPO3_Flow_Resource_StaticResourcePath='

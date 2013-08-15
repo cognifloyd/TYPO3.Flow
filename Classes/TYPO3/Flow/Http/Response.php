@@ -574,7 +574,10 @@ class Response extends Message implements ResponseInterface {
 	 */
 	public function send() {
 		$this->sendHeaders();
-		if ($this->content !== NULL) {
+
+		if ($this->content instanceof \Closure) {
+			$this->content->__invoke();
+		} elseif ($this->content !== NULL) {
 			echo $this->getContent();
 		}
 	}
